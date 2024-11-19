@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { Inter, Montserrat } from "next/font/google";
-import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Montserrat } from "next/font/google";
 import {
   Select,
   SelectContent,
@@ -13,6 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
+import { Token, ProjectData } from "@/types/token";
+import { getTokenData } from "@/lib/api";
+import Image from "next/image";
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
@@ -44,323 +45,208 @@ const BarChart3 = dynamic(() =>
   import("lucide-react").then((mod) => mod.BarChart3)
 );
 
-const inter = Inter({ subsets: ["latin"] });
 const montserrat = Montserrat({ subsets: ["latin"] });
 
-type ProjectData = {
-  date: string;
-  inCirculation: number;
-  consumed: number;
-  newTokens: number;
-  returnedTokens: number;
-};
-
-type ProjectsDataType = {
-  [key: string]: ProjectData[];
-};
-
-// Sample data for multiple projects
-const projectsData: ProjectsDataType = {
-  "Project A": [
-    {
-      date: "2023-01",
-      inCirculation: 1000,
-      consumed: 0,
-      newTokens: 1000,
-      returnedTokens: 0,
-    },
-    {
-      date: "2023-02",
-      inCirculation: 950,
-      consumed: 50,
-      newTokens: 0,
-      returnedTokens: 50,
-    },
-    {
-      date: "2023-03",
-      inCirculation: 850,
-      consumed: 150,
-      newTokens: 50,
-      returnedTokens: 100,
-    },
-    {
-      date: "2023-04",
-      inCirculation: 700,
-      consumed: 300,
-      newTokens: 0,
-      returnedTokens: 150,
-    },
-    {
-      date: "2023-05",
-      inCirculation: 500,
-      consumed: 500,
-      newTokens: 100,
-      returnedTokens: 200,
-    },
-    {
-      date: "2023-06",
-      inCirculation: 250,
-      consumed: 750,
-      newTokens: 0,
-      returnedTokens: 250,
-    },
-    {
-      date: "2023-07",
-      inCirculation: 100,
-      consumed: 900,
-      newTokens: 50,
-      returnedTokens: 200,
-    },
-  ],
-  "Project B": [
-    {
-      date: "2023-01",
-      inCirculation: 500,
-      consumed: 0,
-      newTokens: 500,
-      returnedTokens: 0,
-    },
-    {
-      date: "2023-02",
-      inCirculation: 450,
-      consumed: 50,
-      newTokens: 0,
-      returnedTokens: 25,
-    },
-    {
-      date: "2023-03",
-      inCirculation: 400,
-      consumed: 100,
-      newTokens: 25,
-      returnedTokens: 50,
-    },
-    {
-      date: "2023-04",
-      inCirculation: 350,
-      consumed: 150,
-      newTokens: 0,
-      returnedTokens: 75,
-    },
-    {
-      date: "2023-05",
-      inCirculation: 250,
-      consumed: 250,
-      newTokens: 50,
-      returnedTokens: 100,
-    },
-    {
-      date: "2023-06",
-      inCirculation: 150,
-      consumed: 350,
-      newTokens: 0,
-      returnedTokens: 125,
-    },
-    {
-      date: "2023-07",
-      inCirculation: 50,
-      consumed: 450,
-      newTokens: 25,
-      returnedTokens: 100,
-    },
-  ],
-  "Project C": [
-    {
-      date: "2023-01",
-      inCirculation: 200,
-      consumed: 0,
-      newTokens: 200,
-      returnedTokens: 0,
-    },
-    {
-      date: "2023-02",
-      inCirculation: 180,
-      consumed: 20,
-      newTokens: 0,
-      returnedTokens: 10,
-    },
-    {
-      date: "2023-03",
-      inCirculation: 160,
-      consumed: 40,
-      newTokens: 10,
-      returnedTokens: 20,
-    },
-    {
-      date: "2023-04",
-      inCirculation: 140,
-      consumed: 60,
-      newTokens: 0,
-      returnedTokens: 30,
-    },
-    {
-      date: "2023-05",
-      inCirculation: 100,
-      consumed: 100,
-      newTokens: 20,
-      returnedTokens: 40,
-    },
-    {
-      date: "2023-06",
-      inCirculation: 60,
-      consumed: 140,
-      newTokens: 0,
-      returnedTokens: 50,
-    },
-    {
-      date: "2023-07",
-      inCirculation: 20,
-      consumed: 180,
-      newTokens: 10,
-      returnedTokens: 40,
-    },
-  ],
-};
+const WALLET_ADDRESS = "7jZj1fiUZXUQ3sKQcopbDnWZYAPkEu28Su32WCRoEfQn";
 
 export default function Dashboard() {
-  const [isNavOpen, setIsNavOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState("Project A");
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [selectedToken, setSelectedToken] = useState<string>("");
+  const [projectData, setProjectData] = useState<ProjectData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [initialSupply, setInitialSupply] = useState<number>(0);
 
-  const currentProjectData = useMemo(
-    () => projectsData[selectedProject],
-    [selectedProject]
-  );
-  const totalTokens = useMemo(
-    () => currentProjectData[0].inCirculation + currentProjectData[0].consumed,
-    [currentProjectData]
-  );
-  const tokensInCirculation = useMemo(
-    () => currentProjectData[currentProjectData.length - 1].inCirculation,
-    [currentProjectData]
-  );
-  const tokensConsumed = useMemo(
-    () => currentProjectData[currentProjectData.length - 1].consumed,
-    [currentProjectData]
-  );
+  useEffect(() => {
+    async function fetchTokens() {
+      try {
+        const tokenData = await getTokenData(WALLET_ADDRESS);
+        setTokens(tokenData);
+        if (tokenData.length > 0) {
+          setSelectedToken(tokenData[0].mintAddress);
+          const firstToken = tokenData[0];
+          const maxWallets =
+            firstToken.metadata[0].tokenDescription.tokenData[
+              "Maximum Number of Wallets Allowed"
+            ];
+          const tokensPerWallet =
+            firstToken.metadata[0].tokenDescription.tokenData[
+              "Number of Tokens per Wallet"
+            ];
+          setInitialSupply(maxWallets * tokensPerWallet);
+        }
+      } catch (error) {
+        console.error("Failed to fetch tokens:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTokens();
+  }, []);
+
+  useEffect(() => {
+    async function fetchProjectData() {
+      if (!selectedToken) return;
+
+      const token = tokens.find((t) => t.mintAddress === selectedToken);
+      if (!token) return;
+
+      // Calculate initial supply
+      const maxWallets = token.metadata[0].tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
+      const tokensPerWallet = token.metadata[0].tokenDescription.tokenData["Number of Tokens per Wallet"];
+      const tokenInitialSupply = maxWallets * tokensPerWallet;
+      setInitialSupply(tokenInitialSupply);
+
+      // Current balance from token data (these are the consumed tokens that have been returned)
+      const currentBalance = token.balance;
+
+      // Calculate tokens in circulation (distributed but not consumed)
+      const inCirculation = Math.max(0, tokenInitialSupply - currentBalance);
+
+      // Generate last 6 months of data with current values
+      const data: ProjectData[] = Array.from({ length: 6 }).map((_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - (5 - i));
+        return {
+          date: date.toISOString().slice(0, 7),
+          inCirculation: inCirculation,
+          consumed: currentBalance, // Consumed tokens are the ones returned to creator wallet
+        };
+      });
+
+      setProjectData(data);
+    }
+
+    fetchProjectData();
+  }, [selectedToken, tokens]);
+
+  const currentProjectData = useMemo(() => projectData, [projectData]);
+
+  const tokensInCirculation = useMemo(() => {
+    if (!currentProjectData.length) return 0;
+    return currentProjectData[currentProjectData.length - 1].inCirculation;
+  }, [currentProjectData]);
+  const tokensConsumed = useMemo(() => {
+    if (!currentProjectData.length) return 0;
+    return currentProjectData[currentProjectData.length - 1].consumed;
+  }, [currentProjectData]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#141414]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#4FDEE5]"></div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`min-h-screen bg-[#0E0E0E] text-[#F1F1F3] ${inter.className}`}
-    >
-      <nav className="bg-[#1B1B1B] p-4 flex justify-between items-center">
-        <h1
-          className={`text-2xl font-bold text-[#4FDEE5] ${montserrat.className}`}
-        >
-          Smart Supply System
-        </h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsNavOpen(!isNavOpen)}
-          className="md:hidden text-[#4FDEE5]"
-        >
-          {isNavOpen ? <X /> : <Menu />}
-        </Button>
-        <ul className={`md:flex space-x-6 ${isNavOpen ? "block" : "hidden"}`}>
-          <li>
-            <a
-              href="#"
-              className="hover:text-[#4FDEE5] text-sm font-medium tracking-wide"
-            >
-              Dashboard
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="hover:text-[#4FDEE5] text-sm font-medium tracking-wide"
-            >
-              Projects
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="hover:text-[#4FDEE5] text-sm font-medium tracking-wide"
-            >
-              Analytics
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="hover:text-[#4FDEE5] text-sm font-medium tracking-wide"
-            >
-              Settings
-            </a>
-          </li>
-        </ul>
-      </nav>
-
-      <div className="container mx-auto p-6">
-        <div className="mb-6">
-          <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger className="w-[200px] bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
-              <SelectValue placeholder="Select a project" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
-              {Object.keys(projectsData).map((project) => (
-                <SelectItem
-                  key={project}
-                  value={project}
-                  className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
-                >
-                  {project}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <div className="flex flex-col h-screen overflow-hidden bg-[#141414]">
+      <nav className="flex items-center justify-between px-6 py-4 bg-[#1B1B1B] border-b border-[#2D2D2D]">
+        <div className="flex items-center gap-4">
+          <Image
+            src="/logo.svg"
+            alt="SmartBuiz Logo"
+            width={32}
+            height={32}
+            className="dark:invert"
+          />
+          <h1
+            className={`text-xl font-semibold text-[#F1F1F3] ${montserrat.className}`}
+          >
+            SmartBuiz
+          </h1>
         </div>
 
+        <Select value={selectedToken} onValueChange={setSelectedToken}>
+          <SelectTrigger className="w-[200px] bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
+            <SelectValue placeholder="Select a project" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
+            {tokens.map((token) => (
+              <SelectItem
+                key={token.mintAddress}
+                value={token.mintAddress}
+                className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
+              >
+                {token.metadata[0].tokenDescription.tokenData["Project Name"]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </nav>
+
+      <div className="flex-1 overflow-y-auto p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
           <Card className="bg-[#1B1B1B] border-[#2D2D2D]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle
                 className={`text-[#4FDEE5] text-xl ${montserrat.className}`}
               >
-                Total Tokens
+                Total Supply
               </CardTitle>
-              <Coins className="h-8 w-8 text-[#4FDEE5]" />{" "}
-              {/* Increased size */}
+              <Coins className="h-8 w-8 text-[#4FDEE5]" />
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-[#F1F1F3]">
-                {totalTokens}
+                {initialSupply.toLocaleString()}
               </div>
-              <p className="text-xs text-[#B4B4B4]">All time</p>
+              <p className="text-xs text-[#B4B4B4] mt-1">
+                <span className="text-[#8E8E8E]">100%</span> of total supply
+              </p>
             </CardContent>
           </Card>
+
           <Card className="bg-[#1B1B1B] border-[#2D2D2D]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle
                 className={`text-[#4FDEE5] text-xl ${montserrat.className}`}
               >
-                Tokens in Circulation
+                In Circulation
               </CardTitle>
-              <CircleDollarSign className="h-8 w-8 text-[#4FDEE5]" />{" "}
-              {/* Increased size */}
+              <CircleDollarSign className="h-8 w-8 text-[#4FDEE5]" />
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-[#F1F1F3]">
-                {tokensInCirculation}
+                {tokensInCirculation.toLocaleString()}
               </div>
-              <p className="text-xs text-[#B4B4B4]">Current</p>
+              <p className="text-xs text-[#B4B4B4] mt-1">
+                <span
+                  className={
+                    tokensInCirculation > 0
+                      ? "text-green-500"
+                      : "text-[#8E8E8E]"
+                  }
+                >
+                  {((tokensInCirculation / initialSupply) * 100).toFixed(1)}%
+                </span>{" "}
+                of total supply
+              </p>
             </CardContent>
           </Card>
+
           <Card className="bg-[#1B1B1B] border-[#2D2D2D]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle
                 className={`text-[#4FDEE5] text-xl ${montserrat.className}`}
               >
-                Tokens Consumed
+                Consumed
               </CardTitle>
-              <BarChart3 className="h-8 w-8 text-[#4FDEE5]" />{" "}
-              {/* Increased size */}
+              <BarChart3 className="h-8 w-8 text-[#4FDEE5]" />
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-[#F1F1F3]">
-                {tokensConsumed}
+                {tokensConsumed.toLocaleString()}
               </div>
-              <p className="text-xs text-[#B4B4B4]">All time</p>
+              <p className="text-xs text-[#B4B4B4] mt-1">
+                <span
+                  className={
+                    tokensConsumed > 0 ? "text-green-500" : "text-[#8E8E8E]"
+                  }
+                >
+                  {((tokensConsumed / initialSupply) * 100).toFixed(1)}%
+                </span>{" "}
+                of total supply
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -373,7 +259,7 @@ export default function Dashboard() {
               Token Circulation vs Consumption
             </CardTitle>
             <CardDescription className="text-[#B4B4B4] text-sm">
-              Overview of token distribution over time for {selectedProject}
+              Overview of token distribution over time for {selectedToken}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -417,24 +303,6 @@ export default function Dashboard() {
                     fill="#F1F1F3"
                     fillOpacity={0.2}
                     name="Consumed"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="newTokens"
-                    stackId="2"
-                    stroke="#FFB528"
-                    fill="#FFB528"
-                    fillOpacity={0.2}
-                    name="New Tokens"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="returnedTokens"
-                    stackId="2"
-                    stroke="#FF6B6B"
-                    fill="#FF6B6B"
-                    fillOpacity={0.2}
-                    name="Returned Tokens"
                   />
                 </AreaChart>
               </ResponsiveContainer>
