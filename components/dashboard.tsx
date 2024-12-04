@@ -110,7 +110,7 @@ export default function Dashboard() {
         return {
           date: date.toISOString().slice(0, 7),
           inCirculation: inCirculation,
-          consumed: currentBalance, // Consumed tokens are the ones returned to creator wallet
+          consumed: currentBalance,
         };
       });
 
@@ -289,7 +289,6 @@ export default function Dashboard() {
                   <Area
                     type="monotone"
                     dataKey="inCirculation"
-                    stackId="1"
                     stroke="#4FDEE5"
                     fill="#4FDEE5"
                     fillOpacity={0.2}
@@ -298,7 +297,6 @@ export default function Dashboard() {
                   <Area
                     type="monotone"
                     dataKey="consumed"
-                    stackId="1"
                     stroke="#F1F1F3"
                     fill="#F1F1F3"
                     fillOpacity={0.2}
