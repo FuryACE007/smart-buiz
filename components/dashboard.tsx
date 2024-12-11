@@ -14,6 +14,7 @@ import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
 import { Token, ProjectData } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 import Image from "next/image";
+import { Wallet } from "lucide-react";
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
@@ -157,22 +158,29 @@ export default function Dashboard() {
           </h1>
         </div>
 
-        <Select value={selectedToken} onValueChange={setSelectedToken}>
-          <SelectTrigger className="w-[200px] bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
-            <SelectValue placeholder="Select a project" />
-          </SelectTrigger>
-          <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
-            {tokens.map((token) => (
-              <SelectItem
-                key={token.mintAddress}
-                value={token.mintAddress}
-                className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
-              >
-                {token.metadata[0].tokenDescription.tokenData["Project Name"]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-[#B4B4B4] text-sm">
+            <Wallet className="h-4 w-4 text-[#4FDEE5]" />
+            <span>Lucid Wallet: </span>
+            <span className="text-[#4FDEE5] font-mono">{WALLET_ADDRESS}</span>
+          </div>
+          <Select value={selectedToken} onValueChange={setSelectedToken}>
+            <SelectTrigger className="w-[200px] bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
+              <SelectValue placeholder="Select a project" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
+              {tokens.map((token) => (
+                <SelectItem
+                  key={token.mintAddress}
+                  value={token.mintAddress}
+                  className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
+                >
+                  {token.metadata[0].tokenDescription.tokenData["Project Name"]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </nav>
 
       <div className="flex-1 overflow-y-auto p-8">
