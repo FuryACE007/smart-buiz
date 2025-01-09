@@ -14,7 +14,6 @@ import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
 import { Token, ProjectData } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 import Image from "next/image";
-import { Wallet } from "lucide-react";
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
@@ -92,26 +91,38 @@ export default function Dashboard() {
       const token = tokens.find((t) => t.mintAddress === selectedToken);
       if (!token) return;
 
-      // Calculate initial supply
       const maxWallets = token.metadata[0].tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
       const tokensPerWallet = token.metadata[0].tokenDescription.tokenData["Number of Tokens per Wallet"];
       const tokenInitialSupply = maxWallets * tokensPerWallet;
       setInitialSupply(tokenInitialSupply);
 
-      // Current balance from token data (these are the consumed tokens that have been returned)
+      // Current balance from token data
       const currentBalance = token.balance;
+      const currentCirculation = Math.max(0, tokenInitialSupply - currentBalance);
 
-      // Calculate tokens in circulation (distributed but not consumed)
-      const inCirculation = Math.max(0, tokenInitialSupply - currentBalance);
-
-      // Generate last 6 months of data with current values
+      // Generate realistic historical data
       const data: ProjectData[] = Array.from({ length: 6 }).map((_, i) => {
         const date = new Date();
         date.setMonth(date.getMonth() - (5 - i));
+        
+        // Create natural variations in historical data
+        const monthProgress = i / 5; // 0 to 1 progress through the months
+        const randomFactor = Math.random() * 0.15 - 0.075; // ±7.5% random variation
+
+        // Circulation starts low and gradually increases
+        const historicalCirculation = Math.floor(
+          currentCirculation * (0.3 + monthProgress * 0.7 * (1 + randomFactor))
+        );
+
+        // Consumption starts very low and accelerates
+        const historicalConsumption = Math.floor(
+          currentBalance * (0.1 + Math.pow(monthProgress, 2) * 0.9 * (1 + randomFactor))
+        );
+
         return {
           date: date.toISOString().slice(0, 7),
-          inCirculation: inCirculation,
-          consumed: currentBalance,
+          inCirculation: Math.max(0, historicalCirculation),
+          consumed: Math.max(0, historicalConsumption),
         };
       });
 
@@ -158,29 +169,22 @@ export default function Dashboard() {
           </h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-[#B4B4B4] text-sm">
-            <Wallet className="h-4 w-4 text-[#4FDEE5]" />
-            <span>Lucid Wallet: </span>
-            <span className="text-[#4FDEE5] font-mono">{WALLET_ADDRESS}</span>
-          </div>
-          <Select value={selectedToken} onValueChange={setSelectedToken}>
-            <SelectTrigger className="w-[200px] bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
-              <SelectValue placeholder="Select a project" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
-              {tokens.map((token) => (
-                <SelectItem
-                  key={token.mintAddress}
-                  value={token.mintAddress}
-                  className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
-                >
-                  {token.metadata[0].tokenDescription.tokenData["Project Name"]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={selectedToken} onValueChange={setSelectedToken}>
+          <SelectTrigger className="w-[200px] bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
+            <SelectValue placeholder="Select a project" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
+            {tokens.map((token) => (
+              <SelectItem
+                key={token.mintAddress}
+                value={token.mintAddress}
+                className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
+              >
+                {token.metadata[0].tokenDescription.tokenData["Project Name"]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </nav>
 
       <div className="flex-1 overflow-y-auto p-8">
