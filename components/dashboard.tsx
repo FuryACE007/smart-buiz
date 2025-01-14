@@ -85,17 +85,6 @@ export default function Dashboard() {
     fetchTokens();
   }, []);
 
-  // Handle token selection including data refresh
-  const handleTokenSelect = async (tokenId: string) => {
-    setSelectedToken(tokenId);
-    try {
-      const freshData = await getTokenData(WALLET_ADDRESS);
-      setTokens(freshData);
-    } catch (error) {
-      console.error("Failed to refresh token data:", error);
-    }
-  };
-
   useEffect(() => {
     async function fetchProjectData() {
       if (!selectedToken) return;
@@ -277,11 +266,7 @@ export default function Dashboard() {
 
         {/* Add TokenMonitor before the Token Circulation vs Consumption chart */}
         <div className="mb-10">
-          <TokenMonitor 
-            tokens={tokens}
-            selectedToken={selectedToken}
-            onTokenSelect={handleTokenSelect}
-          />
+          <TokenMonitor />
         </div>
 
         <Card className="mb-10 bg-[#1B1B1B] border-[#2D2D2D]">
