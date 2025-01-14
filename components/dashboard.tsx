@@ -14,6 +14,7 @@ import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
 import { Token, ProjectData } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 import Image from "next/image";
+import TokenMonitor from './TokenMonitor';
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
@@ -83,6 +84,17 @@ export default function Dashboard() {
 
     fetchTokens();
   }, []);
+
+  // Handle token selection including data refresh
+  const handleTokenSelect = async (tokenId: string) => {
+    setSelectedToken(tokenId);
+    try {
+      const freshData = await getTokenData(WALLET_ADDRESS);
+      setTokens(freshData);
+    } catch (error) {
+      console.error("Failed to refresh token data:", error);
+    }
+  };
 
   useEffect(() => {
     async function fetchProjectData() {
@@ -261,6 +273,15 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Add TokenMonitor before the Token Circulation vs Consumption chart */}
+        <div className="mb-10">
+          <TokenMonitor 
+            tokens={tokens}
+            selectedToken={selectedToken}
+            onTokenSelect={handleTokenSelect}
+          />
         </div>
 
         <Card className="mb-10 bg-[#1B1B1B] border-[#2D2D2D]">
