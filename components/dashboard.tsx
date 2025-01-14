@@ -14,6 +14,7 @@ import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
 import { Token, ProjectData } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 import Image from "next/image";
+import TokenMonitor from './TokenMonitor';
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
@@ -261,6 +262,11 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Add TokenMonitor before the Token Circulation vs Consumption chart */}
+        <div className="mb-10">
+          <TokenMonitor />
         </div>
 
         <Card className="mb-10 bg-[#1B1B1B] border-[#2D2D2D]">
