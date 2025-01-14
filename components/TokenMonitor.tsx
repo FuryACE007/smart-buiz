@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { Token } from '@/types/token';
@@ -19,7 +19,8 @@ export default function TokenMonitor() {
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortedMintAddresses, setSortedMintAddresses] = useState<string[]>([]);
+  // Replace state with ref for sorted addresses
+  const sortedMintAddressesRef = useRef<string[]>([]);
 
   // Fetch fresh token data
   const fetchTokenData = useCallback(async () => {
@@ -27,9 +28,9 @@ export default function TokenMonitor() {
       const data = await getTokenData(WALLET_ADDRESS);
       setTokens(data);
       
-      // Initialize mint address order if not set
-      if (sortedMintAddresses.length === 0 && data.length > 0) {
-        setSortedMintAddresses(data.map(token => token.mintAddress));
+      // Only set sorted addresses once during initial load
+      if (sortedMintAddressesRef.current.length === 0 && data.length > 0) {
+        sortedMintAddressesRef.current = data.map(token => token.mintAddress);
       }
       
       setError(null);
@@ -39,14 +40,14 @@ export default function TokenMonitor() {
     } finally {
       setLoading(false);
     }
-  }, [sortedMintAddresses]);
+  }, []); // Remove dependency on sortedMintAddresses
 
-  // Initial data fetch
+  // Initial data fetch - only run once
   useEffect(() => {
     fetchTokenData();
-  }, [fetchTokenData]);
+  }, []); // Empty dependency array
 
-  // Refresh countdown
+  // Separate refresh logic with its own interval
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown(prev => {
@@ -59,10 +60,10 @@ export default function TokenMonitor() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [fetchTokenData]);
+  }, []); // Empty dependency array for consistent interval
 
-  // Prepare chart data maintaining consistent order
-  const chartData: BarData[] = sortedMintAddresses.map(mintAddress => {
+  // Use ref instead of state for chart data preparation
+  const chartData: BarData[] = sortedMintAddressesRef.current.map(mintAddress => {
     const token = tokens.find(t => t.mintAddress === mintAddress);
     if (!token) return {
       projectName: 'Unknown',
