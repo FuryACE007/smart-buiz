@@ -66,11 +66,11 @@ export default function Dashboard() {
           setSelectedToken(tokenData[0].mintAddress);
           const firstToken = tokenData[0];
           const maxWallets =
-            firstToken.metadata?.[0]?.tokenDescription?.tokenData?.[
+            firstToken.metadata?.tokenDescription?.tokenData?.[
               "Maximum Number of Wallets Allowed"
             ] || 0;
           const tokensPerWallet =
-            firstToken.metadata?.[0]?.tokenDescription?.tokenData?.[
+            firstToken.metadata?.tokenDescription?.tokenData?.[
               "Number of Tokens per Wallet"
             ] || 0;
           setInitialSupply(maxWallets * tokensPerWallet);
@@ -93,11 +93,11 @@ export default function Dashboard() {
       if (!token) return;
 
       const maxWallets =
-        token.metadata[0].tokenDescription.tokenData[
+        token.metadata.tokenDescription.tokenData[
           "Maximum Number of Wallets Allowed"
         ];
       const tokensPerWallet =
-        token.metadata[0].tokenDescription.tokenData[
+        token.metadata.tokenDescription.tokenData[
           "Number of Tokens per Wallet"
         ];
       const tokenInitialSupply = maxWallets * tokensPerWallet;
@@ -187,9 +187,8 @@ export default function Dashboard() {
           <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
             {tokens.map((token) => {
               const projectName =
-                token.metadata?.[0]?.tokenDescription?.tokenData?.[
-                  "Project Name"
-                ] || "Unknown Project";
+                token.metadata?.tokenDescription?.tokenData?.["Project Name"] ||
+                "Unknown Project";
               return (
                 <SelectItem
                   key={token.mintAddress}
