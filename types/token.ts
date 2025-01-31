@@ -1,12 +1,12 @@
 export interface TokenMetadata {
   tokenName: string;
   tokenSymbol: string;
+  uom?: string;
   tokenDescription: {
     tokenData: {
       "Project Name": string;
       "Token Name": string;
-      "Currency Type"?: string;
-      "currency_type"?: string;
+      "Currency Type": string;
       "Wallet Cost": number;
       "Token Symbol": string;
       "Maximum Number of Wallets Allowed": number;
@@ -15,14 +15,12 @@ export interface TokenMetadata {
     };
     projectData: {
       "Consumable Name"?: string;
-      "consumable_name"?: string;
-      "Msrp"?: number | string;
-      "msrp"?: string;
-      "Color"?: string;
-      "color"?: string;
-      "Number Of Pages Yield"?: number;
-      "number_of_pages_yield"?: string;
-      [key: string]: unknown; // For additional dynamic fields
+      "Media Type"?: string;
+      Msrp?: number;
+      "Number of Pages per Pack"?: number;
+      Size?: string;
+      SKU?: string;
+      [key: string]: unknown;
     };
   };
 }
@@ -30,7 +28,7 @@ export interface TokenMetadata {
 export interface Token {
   name: string;
   symbol: string;
-  metadata: TokenMetadata[];
+  metadata: TokenMetadata;
   balance: number;
   mintAddress: string;
 }
@@ -39,4 +37,4 @@ export interface ProjectData {
   date: string;
   inCirculation: number;
   consumed: number;
-} 
+}
