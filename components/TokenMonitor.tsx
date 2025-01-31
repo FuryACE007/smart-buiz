@@ -122,9 +122,18 @@ export default function TokenMonitor() {
               <BarChart
                 data={chartData}
                 layout="vertical"
-                margin={{ top: 20, right: 30, left: 150, bottom: 5 }}
+                style={{
+                  backgroundColor: "rgba(27, 27, 27, 0.8)",
+                  backdropFilter: "blur(8px)",
+                  borderRadius: "8px",
+                }}
               >
-                <XAxis type="number" stroke="#B4B4B4" />
+                <XAxis
+                  type="number"
+                  stroke="#B4B4B4"
+                  scale="log"
+                  domain={[1, "auto"]}
+                />
                 <YAxis
                   type="category"
                   dataKey="projectName"
@@ -134,10 +143,16 @@ export default function TokenMonitor() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1B1B1B",
-                    border: "1px solid #2D2D2D",
-                    borderRadius: "4px",
+                    backgroundColor: "rgba(27, 27, 27, 0.8)",
+                    backdropFilter: "blur(8px)",
+                    border: "1px solid rgba(79, 222, 229, 0.2)",
+                    boxShadow:
+                      "0 4px 12px rgba(0, 0, 0, 0.1), 0 0 1px rgba(79, 222, 229, 0.1)",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    color: "#F1F1F3",
                   }}
+                  cursor={{ fill: "rgba(27, 27, 27, 0.4)" }}
                   formatter={(value: number) => value.toLocaleString()}
                 />
                 <Legend />
@@ -146,12 +161,14 @@ export default function TokenMonitor() {
                   name="Current Balance"
                   fill="#4FDEE5"
                   radius={[0, 4, 4, 0]}
+                  barSize={12}
                 />
                 <Bar
                   dataKey="maxBalance"
                   name="Maximum Balance"
                   fill="#6B7280"
                   radius={[0, 4, 4, 0]}
+                  barSize={12}
                 />
               </BarChart>
             </ResponsiveContainer>
