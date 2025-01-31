@@ -1,11 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-import { Token } from '@/types/token';
-import { getTokenData } from '@/lib/api';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts";
+import { Token } from "@/types/token";
+import { getTokenData } from "@/lib/api";
 
 const REFRESH_INTERVAL = 15; // seconds
-const WALLET_ADDRESS = "7jZj1fiUZXUQ3sKQcopbDnWZYAPkEu28Su32WCRoEfQn";
+const WALLET_ADDRESS = "BKQQ5ypcHe4vAJa4XfydJGawoNmgovCe9BH95qZfD4nM";
 
 interface BarData {
   projectName: string;
@@ -19,38 +27,33 @@ export default function TokenMonitor() {
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Replace state with ref for sorted addresses
   const sortedMintAddressesRef = useRef<string[]>([]);
 
-  // Fetch fresh token data
   const fetchTokenData = useCallback(async () => {
     try {
       const data = await getTokenData(WALLET_ADDRESS);
       setTokens(data);
-      
-      // Only set sorted addresses once during initial load
+
       if (sortedMintAddressesRef.current.length === 0 && data.length > 0) {
-        sortedMintAddressesRef.current = data.map(token => token.mintAddress);
+        sortedMintAddressesRef.current = data.map((token) => token.mintAddress);
       }
-      
+
       setError(null);
     } catch (err) {
-      setError('Failed to fetch token data');
+      setError("Failed to fetch token data");
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, []); // Remove dependency on sortedMintAddresses
+  }, []);
 
-  // Initial data fetch - only run once
   useEffect(() => {
     fetchTokenData();
-  }, []); // Empty dependency array
+  }, []);
 
-  // Separate refresh logic with its own interval
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev <= 1) {
           fetchTokenData();
           return REFRESH_INTERVAL;
@@ -60,32 +63,44 @@ export default function TokenMonitor() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []); // Empty dependency array for consistent interval
+  }, []);
 
-  // Use ref instead of state for chart data preparation
-  const chartData: BarData[] = sortedMintAddressesRef.current.map(mintAddress => {
-    const token = tokens.find(t => t.mintAddress === mintAddress);
-    if (!token) return {
-      projectName: 'Unknown',
-      mintAddress,
-      balance: 0,
-      maxBalance: 0
-    };
+  const chartData: BarData[] = sortedMintAddressesRef.current.map(
+    (mintAddress) => {
+      const token = tokens.find((t) => t.mintAddress === mintAddress);
+      if (!token)
+        return {
+          projectName: "Unknown",
+          mintAddress,
+          balance: 0,
+          maxBalance: 0,
+        };
 
-    const maxWallets = token.metadata[0].tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
-    const tokensPerWallet = token.metadata[0].tokenDescription.tokenData["Number of Tokens per Wallet"];
-    const projectName = token.metadata[0].tokenDescription.tokenData["Project Name"];
+      const maxWallets =
+        token.metadata.tokenDescription.tokenData[
+          "Maximum Number of Wallets Allowed"
+        ] || 0;
+      const tokensPerWallet =
+        token.metadata.tokenDescription.tokenData[
+          "Number of Tokens per Wallet"
+        ] || 0;
+      const projectName =
+        token.metadata.tokenDescription.tokenData["Project Name"] ||
+        "Unknown Project";
 
-    return {
-      projectName,
-      mintAddress,
-      balance: token.balance,
-      maxBalance: maxWallets * tokensPerWallet
-    };
-  });
+      return {
+        projectName,
+        mintAddress,
+        balance: token.balance,
+        maxBalance: maxWallets * tokensPerWallet,
+      };
+    }
+  );
 
   if (loading) {
-    return <div className="animate-pulse bg-[#1B1B1B] h-[300px] rounded-lg"></div>;
+    return (
+      <div className="animate-pulse bg-[#1B1B1B] h-[300px] rounded-lg"></div>
+    );
   }
 
   return (
@@ -97,7 +112,7 @@ export default function TokenMonitor() {
         </span>
       </CardHeader>
       <CardContent>
-        <div className="h-[400px]"> {/* Increased height to accommodate multiple bars */}
+        <div className="h-[400px]">
           {error ? (
             <div className="h-full flex items-center justify-center text-red-500">
               {error}
@@ -107,9 +122,18 @@ export default function TokenMonitor() {
               <BarChart
                 data={chartData}
                 layout="vertical"
-                margin={{ top: 20, right: 30, left: 150, bottom: 5 }}
+                style={{
+                  backgroundColor: "rgba(27, 27, 27, 0.8)",
+                  backdropFilter: "blur(8px)",
+                  borderRadius: "8px",
+                }}
               >
-                <XAxis type="number" stroke="#B4B4B4" />
+                <XAxis
+                  type="number"
+                  stroke="#B4B4B4"
+                  scale="log"
+                  domain={[1, "auto"]}
+                />
                 <YAxis
                   type="category"
                   dataKey="projectName"
@@ -119,10 +143,16 @@ export default function TokenMonitor() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1B1B1B",
-                    border: "1px solid #2D2D2D",
-                    borderRadius: "4px",
+                    backgroundColor: "rgba(27, 27, 27, 0.8)",
+                    backdropFilter: "blur(8px)",
+                    border: "1px solid rgba(79, 222, 229, 0.2)",
+                    boxShadow:
+                      "0 4px 12px rgba(0, 0, 0, 0.1), 0 0 1px rgba(79, 222, 229, 0.1)",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    color: "#F1F1F3",
                   }}
+                  cursor={{ fill: "rgba(27, 27, 27, 0.4)" }}
                   formatter={(value: number) => value.toLocaleString()}
                 />
                 <Legend />
@@ -131,12 +161,14 @@ export default function TokenMonitor() {
                   name="Current Balance"
                   fill="#4FDEE5"
                   radius={[0, 4, 4, 0]}
+                  barSize={12}
                 />
                 <Bar
                   dataKey="maxBalance"
                   name="Maximum Balance"
-                  fill="#2D2D2D"
+                  fill="#6B7280"
                   radius={[0, 4, 4, 0]}
+                  barSize={12}
                 />
               </BarChart>
             </ResponsiveContainer>

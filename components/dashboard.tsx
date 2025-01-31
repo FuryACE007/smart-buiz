@@ -14,7 +14,7 @@ import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
 import { Token, ProjectData } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 import Image from "next/image";
-import TokenMonitor from './TokenMonitor';
+import TokenMonitor from "./TokenMonitor";
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
@@ -66,13 +66,13 @@ export default function Dashboard() {
           setSelectedToken(tokenData[0].mintAddress);
           const firstToken = tokenData[0];
           const maxWallets =
-            firstToken.metadata[0].tokenDescription.tokenData[
+            firstToken.metadata?.[0]?.tokenDescription?.tokenData?.[
               "Maximum Number of Wallets Allowed"
-            ];
+            ] || 0;
           const tokensPerWallet =
-            firstToken.metadata[0].tokenDescription.tokenData[
+            firstToken.metadata?.[0]?.tokenDescription?.tokenData?.[
               "Number of Tokens per Wallet"
-            ];
+            ] || 0;
           setInitialSupply(maxWallets * tokensPerWallet);
         }
       } catch (error) {
@@ -92,20 +92,29 @@ export default function Dashboard() {
       const token = tokens.find((t) => t.mintAddress === selectedToken);
       if (!token) return;
 
-      const maxWallets = token.metadata[0].tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
-      const tokensPerWallet = token.metadata[0].tokenDescription.tokenData["Number of Tokens per Wallet"];
+      const maxWallets =
+        token.metadata[0].tokenDescription.tokenData[
+          "Maximum Number of Wallets Allowed"
+        ];
+      const tokensPerWallet =
+        token.metadata[0].tokenDescription.tokenData[
+          "Number of Tokens per Wallet"
+        ];
       const tokenInitialSupply = maxWallets * tokensPerWallet;
       setInitialSupply(tokenInitialSupply);
 
       // Current balance from token data
       const currentBalance = token.balance;
-      const currentCirculation = Math.max(0, tokenInitialSupply - currentBalance);
+      const currentCirculation = Math.max(
+        0,
+        tokenInitialSupply - currentBalance
+      );
 
       // Generate realistic historical data
       const data: ProjectData[] = Array.from({ length: 6 }).map((_, i) => {
         const date = new Date();
         date.setMonth(date.getMonth() - (5 - i));
-        
+
         // Create natural variations in historical data
         const monthProgress = i / 5; // 0 to 1 progress through the months
         const randomFactor = Math.random() * 0.15 - 0.075; // ±7.5% random variation
@@ -117,7 +126,8 @@ export default function Dashboard() {
 
         // Consumption starts very low and accelerates
         const historicalConsumption = Math.floor(
-          currentBalance * (0.1 + Math.pow(monthProgress, 2) * 0.9 * (1 + randomFactor))
+          currentBalance *
+            (0.1 + Math.pow(monthProgress, 2) * 0.9 * (1 + randomFactor))
         );
 
         return {
@@ -175,15 +185,21 @@ export default function Dashboard() {
             <SelectValue placeholder="Select a project" />
           </SelectTrigger>
           <SelectContent className="bg-[#1B1B1B] border-[#2D2D2D] text-[#F1F1F3]">
-            {tokens.map((token) => (
-              <SelectItem
-                key={token.mintAddress}
-                value={token.mintAddress}
-                className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
-              >
-                {token.metadata[0].tokenDescription.tokenData["Project Name"]}
-              </SelectItem>
-            ))}
+            {tokens.map((token) => {
+              const projectName =
+                token.metadata?.[0]?.tokenDescription?.tokenData?.[
+                  "Project Name"
+                ] || "Unknown Project";
+              return (
+                <SelectItem
+                  key={token.mintAddress}
+                  value={token.mintAddress}
+                  className="hover:bg-[#2D2D2D] hover:text-[#4FDEE5] cursor-pointer"
+                >
+                  {projectName}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </nav>
