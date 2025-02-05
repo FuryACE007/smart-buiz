@@ -92,51 +92,40 @@ export default function Dashboard() {
       const token = tokens.find((t) => t.mintAddress === selectedToken);
       if (!token) return;
 
-      const maxWallets =
-        token.metadata.tokenDescription.tokenData[
-          "Maximum Number of Wallets Allowed"
-        ];
-      const tokensPerWallet =
-        token.metadata.tokenDescription.tokenData[
-          "Number of Tokens per Wallet"
-        ];
+      const maxWallets = token.metadata.tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
+      const tokensPerWallet = token.metadata.tokenDescription.tokenData["Number of Tokens per Wallet"];
       const tokenInitialSupply = maxWallets * tokensPerWallet;
       setInitialSupply(tokenInitialSupply);
 
-      // Current balance from token data
-      const currentBalance = token.balance;
-      const currentCirculation = Math.max(
-        0,
-        tokenInitialSupply - currentBalance,
-      );
+      const consumedTokens = parseFloat(token.balance.toString());
+      const currentCirculation = Math.max(0, tokenInitialSupply - consumedTokens);
 
-      // Generate realistic historical data
-      const data: ProjectData[] = Array.from({ length: 6 }).map((_, i) => {
+      // Generate more data points for smoother curves
+      const data: ProjectData[] = Array.from({ length: 12 }).map((_, i) => {
         const date = new Date();
-        date.setMonth(date.getMonth() - (5 - i));
+        date.setMonth(date.getMonth() - (11 - i));
 
-        // Create natural variations in historical data
-        const monthProgress = i / 5; // 0 to 1 progress through the months
-        const randomFactor = Math.random() * 0.15 - 0.075; // ±7.5% random variation
+        const progress = i / 11;
+        // Use sine wave to create natural curves
+        const waveFactor = Math.sin(progress * Math.PI) * 0.15;
+        const randomFactor = (Math.random() * 0.1) - 0.05;
 
-        // Circulation starts low and gradually increases
-        const historicalCirculation = Math.floor(
-          currentCirculation * (0.3 + monthProgress * 0.7 * (1 + randomFactor)),
-        );
+        // Add wave patterns to circulation and consumption
+        const historicalCirculation = 
+          currentCirculation + 
+          (consumedTokens * Math.cos(progress * Math.PI * 0.5)) * (1 + waveFactor + randomFactor);
 
-        // Consumption starts very low and accelerates
-        const historicalConsumption = Math.floor(
-          currentBalance *
-            (0.1 + Math.pow(monthProgress, 2) * 0.9 * (1 + randomFactor)),
-        );
+        const historicalConsumption = 
+          consumedTokens * (progress * (1 + Math.sin(progress * Math.PI)) * 0.5) * (1 + randomFactor);
 
         return {
           date: date.toISOString().slice(0, 7),
-          inCirculation: Math.max(0, historicalCirculation),
+          inCirculation: Math.max(0, Math.min(historicalCirculation, tokenInitialSupply)),
           consumed: Math.max(0, historicalConsumption),
         };
       });
 
+      data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       setProjectData(data);
     }
 
@@ -167,7 +156,7 @@ export default function Dashboard() {
       <nav className="flex items-center justify-between px-6 py-4 bg-[#1B1B1B] border-b border-[#2D2D2D]">
         <div className="flex items-center gap-4">
           <Image
-            src="/logo.svg"
+            src="/favicon.ico"
             alt="SmartBuiz Logo"
             width={32}
             height={32}
