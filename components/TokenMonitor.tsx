@@ -13,7 +13,7 @@ import { Token } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 
 const REFRESH_INTERVAL = 15; // seconds
-const WALLET_ADDRESS = "BKQQ5ypcHe4vAJa4XfydJGawoNmgovCe9BH95qZfD4nM";
+const WALLET_ADDRESS = "Hhx2w5Wjpe85nsAMExvqwCfQh68VjAe7ZJE6qMDW8zDR";
 
 interface BarData {
   projectName: string;
@@ -94,7 +94,7 @@ export default function TokenMonitor() {
         balance: token.balance,
         maxBalance: maxWallets * tokensPerWallet,
       };
-    }
+    },
   );
 
   if (loading) {

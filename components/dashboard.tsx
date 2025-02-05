@@ -18,37 +18,37 @@ import TokenMonitor from "./TokenMonitor";
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.Card)
+  import("@/components/ui/card").then((mod) => mod.Card),
 );
 const CardContent = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardContent)
+  import("@/components/ui/card").then((mod) => mod.CardContent),
 );
 const CardDescription = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardDescription)
+  import("@/components/ui/card").then((mod) => mod.CardDescription),
 );
 const CardHeader = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardHeader)
+  import("@/components/ui/card").then((mod) => mod.CardHeader),
 );
 const CardTitle = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardTitle)
+  import("@/components/ui/card").then((mod) => mod.CardTitle),
 );
 const ResponsiveContainer = dynamic(() =>
-  import("recharts").then((mod) => mod.ResponsiveContainer)
+  import("recharts").then((mod) => mod.ResponsiveContainer),
 );
 const AreaChart = dynamic(() =>
-  import("recharts").then((mod) => mod.AreaChart)
+  import("recharts").then((mod) => mod.AreaChart),
 );
 const Coins = dynamic(() => import("lucide-react").then((mod) => mod.Coins));
 const CircleDollarSign = dynamic(() =>
-  import("lucide-react").then((mod) => mod.CircleDollarSign)
+  import("lucide-react").then((mod) => mod.CircleDollarSign),
 );
 const BarChart3 = dynamic(() =>
-  import("lucide-react").then((mod) => mod.BarChart3)
+  import("lucide-react").then((mod) => mod.BarChart3),
 );
 
 const montserrat = Montserrat({ subsets: ["latin"] });
 
-const WALLET_ADDRESS = "7jZj1fiUZXUQ3sKQcopbDnWZYAPkEu28Su32WCRoEfQn";
+const WALLET_ADDRESS = "Hhx2w5Wjpe85nsAMExvqwCfQh68VjAe7ZJE6qMDW8zDR";
 
 export default function Dashboard() {
   const [tokens, setTokens] = useState<Token[]>([]);
@@ -107,7 +107,7 @@ export default function Dashboard() {
       const currentBalance = token.balance;
       const currentCirculation = Math.max(
         0,
-        tokenInitialSupply - currentBalance
+        tokenInitialSupply - currentBalance,
       );
 
       // Generate realistic historical data
@@ -121,13 +121,13 @@ export default function Dashboard() {
 
         // Circulation starts low and gradually increases
         const historicalCirculation = Math.floor(
-          currentCirculation * (0.3 + monthProgress * 0.7 * (1 + randomFactor))
+          currentCirculation * (0.3 + monthProgress * 0.7 * (1 + randomFactor)),
         );
 
         // Consumption starts very low and accelerates
         const historicalConsumption = Math.floor(
           currentBalance *
-            (0.1 + Math.pow(monthProgress, 2) * 0.9 * (1 + randomFactor))
+            (0.1 + Math.pow(monthProgress, 2) * 0.9 * (1 + randomFactor)),
         );
 
         return {
