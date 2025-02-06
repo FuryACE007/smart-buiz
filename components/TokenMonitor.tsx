@@ -8,6 +8,7 @@ import {
   YAxis,
   Tooltip,
   Legend,
+  Cell
 } from "recharts";
 import { Token } from "@/types/token";
 import { getTokenData } from "@/lib/api";
@@ -186,7 +187,6 @@ export default function TokenMonitor() {
                 <Bar
                   dataKey="balance"
                   name="Current Balance"
-                  fill={chartData[0]?.color || TOKEN_COLORS[0]}
                   radius={[0, 4, 4, 0]}
                   barSize={10}
                   label={{
@@ -197,7 +197,14 @@ export default function TokenMonitor() {
                       `Current: ${value.toLocaleString()}`,
                     dx: 5,
                   }}
-                />
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={TOKEN_COLORS[index % TOKEN_COLORS.length]}
+                    />
+                  ))}
+                </Bar>
                 <Bar
                   dataKey="maxBalance"
                   name="Maximum Balance"
