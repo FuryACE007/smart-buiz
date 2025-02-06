@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
+// import { XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area } from "recharts";
 import { Token, ProjectData } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 import Image from "next/image";
@@ -18,32 +18,32 @@ import TokenMonitor from "./TokenMonitor";
 
 // Dynamically import heavy components
 const Card = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.Card),
+  import("@/components/ui/card").then((mod) => mod.Card)
 );
 const CardContent = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardContent),
+  import("@/components/ui/card").then((mod) => mod.CardContent)
 );
 const CardDescription = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardDescription),
+  import("@/components/ui/card").then((mod) => mod.CardDescription)
 );
 const CardHeader = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardHeader),
+  import("@/components/ui/card").then((mod) => mod.CardHeader)
 );
 const CardTitle = dynamic(() =>
-  import("@/components/ui/card").then((mod) => mod.CardTitle),
+  import("@/components/ui/card").then((mod) => mod.CardTitle)
 );
-const ResponsiveContainer = dynamic(() =>
-  import("recharts").then((mod) => mod.ResponsiveContainer),
-);
-const AreaChart = dynamic(() =>
-  import("recharts").then((mod) => mod.AreaChart),
-);
+// const ResponsiveContainer = dynamic(() =>
+//   import("recharts").then((mod) => mod.ResponsiveContainer)
+// );
+// const AreaChart = dynamic(() =>
+//   import("recharts").then((mod) => mod.AreaChart)
+// );
 const Coins = dynamic(() => import("lucide-react").then((mod) => mod.Coins));
 const CircleDollarSign = dynamic(() =>
-  import("lucide-react").then((mod) => mod.CircleDollarSign),
+  import("lucide-react").then((mod) => mod.CircleDollarSign)
 );
 const BarChart3 = dynamic(() =>
-  import("lucide-react").then((mod) => mod.BarChart3),
+  import("lucide-react").then((mod) => mod.BarChart3)
 );
 
 const montserrat = Montserrat({ subsets: ["latin"] });
@@ -92,13 +92,22 @@ export default function Dashboard() {
       const token = tokens.find((t) => t.mintAddress === selectedToken);
       if (!token) return;
 
-      const maxWallets = token.metadata.tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
-      const tokensPerWallet = token.metadata.tokenDescription.tokenData["Number of Tokens per Wallet"];
+      const maxWallets =
+        token.metadata.tokenDescription.tokenData[
+          "Maximum Number of Wallets Allowed"
+        ];
+      const tokensPerWallet =
+        token.metadata.tokenDescription.tokenData[
+          "Number of Tokens per Wallet"
+        ];
       const tokenInitialSupply = maxWallets * tokensPerWallet;
       setInitialSupply(tokenInitialSupply);
 
       const consumedTokens = parseFloat(token.balance.toString());
-      const currentCirculation = Math.max(0, tokenInitialSupply - consumedTokens);
+      const currentCirculation = Math.max(
+        0,
+        tokenInitialSupply - consumedTokens
+      );
 
       // Generate more data points for smoother curves
       const data: ProjectData[] = Array.from({ length: 12 }).map((_, i) => {
@@ -108,24 +117,33 @@ export default function Dashboard() {
         const progress = i / 11;
         // Use sine wave to create natural curves
         const waveFactor = Math.sin(progress * Math.PI) * 0.15;
-        const randomFactor = (Math.random() * 0.1) - 0.05;
+        const randomFactor = Math.random() * 0.1 - 0.05;
 
         // Add wave patterns to circulation and consumption
-        const historicalCirculation = 
-          currentCirculation + 
-          (consumedTokens * Math.cos(progress * Math.PI * 0.5)) * (1 + waveFactor + randomFactor);
+        const historicalCirculation =
+          currentCirculation +
+          consumedTokens *
+            Math.cos(progress * Math.PI * 0.5) *
+            (1 + waveFactor + randomFactor);
 
-        const historicalConsumption = 
-          consumedTokens * (progress * (1 + Math.sin(progress * Math.PI)) * 0.5) * (1 + randomFactor);
+        const historicalConsumption =
+          consumedTokens *
+          (progress * (1 + Math.sin(progress * Math.PI)) * 0.5) *
+          (1 + randomFactor);
 
         return {
           date: date.toISOString().slice(0, 7),
-          inCirculation: Math.max(0, Math.min(historicalCirculation, tokenInitialSupply)),
+          inCirculation: Math.max(
+            0,
+            Math.min(historicalCirculation, tokenInitialSupply)
+          ),
           consumed: Math.max(0, historicalConsumption),
         };
       });
 
-      data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      data.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
       setProjectData(data);
     }
 
@@ -272,63 +290,6 @@ export default function Dashboard() {
         <div className="mb-10">
           <TokenMonitor />
         </div>
-
-        <Card className="mb-10 bg-[#1B1B1B] border-[#2D2D2D]">
-          <CardHeader>
-            <CardTitle
-              className={`text-[#4FDEE5] text-2xl ${montserrat.className}`}
-            >
-              Token Circulation vs Consumption
-            </CardTitle>
-            <CardDescription className="text-[#B4B4B4] text-sm">
-              Overview of token distribution over time for {selectedToken}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={currentProjectData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2D2D2D" />
-                  <XAxis dataKey="date" stroke="#B4B4B4" fontSize={12} />
-                  <YAxis stroke="#B4B4B4" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1B1B1B",
-                      border: "1px solid #2D2D2D",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                    }}
-                    labelStyle={{ color: "#4FDEE5", fontWeight: "bold" }}
-                    itemStyle={{ color: "#F1F1F3" }}
-                  />
-                  <Legend
-                    wrapperStyle={{
-                      paddingTop: "20px",
-                      color: "#B4B4B4",
-                      fontSize: "12px",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="inCirculation"
-                    stroke="#4FDEE5"
-                    fill="#4FDEE5"
-                    fillOpacity={0.2}
-                    name="In Circulation"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="consumed"
-                    stroke="#F1F1F3"
-                    fill="#F1F1F3"
-                    fillOpacity={0.2}
-                    name="Consumed"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-[#1B1B1B] border-[#2D2D2D]">

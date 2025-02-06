@@ -15,11 +15,26 @@ import { getTokenData } from "@/lib/api";
 const REFRESH_INTERVAL = 15; // seconds
 const WALLET_ADDRESS = "Hhx2w5Wjpe85nsAMExvqwCfQh68VjAe7ZJE6qMDW8zDR";
 
+// Color array for token bars
+const TOKEN_COLORS = [
+  "#4FDEE5", // Cyan
+  "#FF6B6B", // Coral Red
+  "#48BF84", // Green
+  "#FFB347", // Orange
+  "#9B6DFF", // Purple
+  "#FF69B4", // Hot Pink
+  "#4DA6FF", // Blue
+  "#FFD700", // Gold
+  "#98FB98", // Pale Green
+  "#DDA0DD", // Plum
+];
+
 interface BarData {
   projectName: string;
   mintAddress: string;
   balance: number;
   maxBalance: number;
+  color?: string;
 }
 
 export default function TokenMonitor() {
@@ -66,7 +81,7 @@ export default function TokenMonitor() {
   }, []);
 
   const chartData: BarData[] = sortedMintAddressesRef.current.map(
-    (mintAddress) => {
+    (mintAddress, index) => {
       const token = tokens.find((t) => t.mintAddress === mintAddress);
       if (!token)
         return {
@@ -74,6 +89,7 @@ export default function TokenMonitor() {
           mintAddress,
           balance: 0,
           maxBalance: 0,
+          color: TOKEN_COLORS[index % TOKEN_COLORS.length],
         };
 
       const maxWallets =
@@ -93,8 +109,9 @@ export default function TokenMonitor() {
         mintAddress,
         balance: token.balance,
         maxBalance: maxWallets * tokensPerWallet,
+        color: TOKEN_COLORS[index % TOKEN_COLORS.length],
       };
-    },
+    }
   );
 
   if (loading) {
@@ -112,7 +129,7 @@ export default function TokenMonitor() {
         </span>
       </CardHeader>
       <CardContent>
-        <div className="h-[400px]">
+        <div className="h-[800px]">
           {error ? (
             <div className="h-full flex items-center justify-center text-red-500">
               {error}
@@ -122,6 +139,7 @@ export default function TokenMonitor() {
               <BarChart
                 data={chartData}
                 layout="vertical"
+                margin={{ top: 20, right: 120, left: 20, bottom: 20 }}
                 style={{
                   backgroundColor: "rgba(27, 27, 27, 0.8)",
                   backdropFilter: "blur(8px)",
@@ -133,13 +151,15 @@ export default function TokenMonitor() {
                   stroke="#B4B4B4"
                   scale="log"
                   domain={[1, "auto"]}
+                  tickFormatter={(value) => value.toLocaleString()}
                 />
                 <YAxis
                   type="category"
                   dataKey="projectName"
                   stroke="#B4B4B4"
-                  width={140}
-                  tick={{ fontSize: 12 }}
+                  width={200}
+                  tick={{ fontSize: 14 }}
+                  interval={0}
                 />
                 <Tooltip
                   contentStyle={{
@@ -155,20 +175,27 @@ export default function TokenMonitor() {
                   cursor={{ fill: "rgba(27, 27, 27, 0.4)" }}
                   formatter={(value: number) => value.toLocaleString()}
                 />
-                <Legend />
+                <Legend verticalAlign="top" height={36} />
                 <Bar
                   dataKey="balance"
                   name="Current Balance"
-                  fill="#4FDEE5"
+                  fill={chartData[0]?.color || TOKEN_COLORS[0]}
                   radius={[0, 4, 4, 0]}
-                  barSize={12}
+                  barSize={10}
                 />
                 <Bar
                   dataKey="maxBalance"
                   name="Maximum Balance"
                   fill="#6B7280"
                   radius={[0, 4, 4, 0]}
-                  barSize={12}
+                  barSize={10}
+                  label={{
+                    position: "right",
+                    fill: "#B4B4B4",
+                    fontSize: 12,
+                    formatter: (value: number) =>
+                      `Max: ${value.toLocaleString()}`,
+                  }}
                 />
               </BarChart>
             </ResponsiveContainer>
