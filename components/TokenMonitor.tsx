@@ -80,8 +80,15 @@ export default function TokenMonitor() {
     return () => clearInterval(timer);
   }, []);
 
-  const chartData: BarData[] = sortedMintAddressesRef.current.map(
-    (mintAddress, index) => {
+  const chartData: BarData[] = sortedMintAddressesRef.current
+    .filter((mintAddress) => {
+      const token = tokens.find((t) => t.mintAddress === mintAddress);
+      const projectName =
+        token?.metadata?.tokenDescription?.tokenData?.["Project Name"] ||
+        "Unknown Project";
+      return !projectName.startsWith("AT");
+    })
+    .map((mintAddress, index) => {
       const token = tokens.find((t) => t.mintAddress === mintAddress);
       if (!token)
         return {
@@ -111,8 +118,7 @@ export default function TokenMonitor() {
         maxBalance: maxWallets * tokensPerWallet,
         color: TOKEN_COLORS[index % TOKEN_COLORS.length],
       };
-    }
-  );
+    });
 
   if (loading) {
     return (
@@ -150,8 +156,9 @@ export default function TokenMonitor() {
                   type="number"
                   stroke="#B4B4B4"
                   scale="log"
-                  domain={[1, "auto"]}
+                  domain={[1, 7000000]}
                   tickFormatter={(value) => value.toLocaleString()}
+                  ticks={[1, 10, 100, 1000, 10000, 100000, 1000000, 7000000]}
                 />
                 <YAxis
                   type="category"
@@ -182,6 +189,14 @@ export default function TokenMonitor() {
                   fill={chartData[0]?.color || TOKEN_COLORS[0]}
                   radius={[0, 4, 4, 0]}
                   barSize={10}
+                  label={{
+                    position: "right",
+                    fill: "#4FDEE5",
+                    fontSize: 12,
+                    formatter: (value: number) =>
+                      `Current: ${value.toLocaleString()}`,
+                    dx: 5,
+                  }}
                 />
                 <Bar
                   dataKey="maxBalance"
