@@ -8,7 +8,7 @@ import {
   YAxis,
   Tooltip,
   Legend,
-  Cell
+  Cell,
 } from "recharts";
 import { Token } from "@/types/token";
 import { getTokenData } from "@/lib/api";
@@ -123,7 +123,19 @@ export default function TokenMonitor() {
 
   if (loading) {
     return (
-      <div className="animate-pulse bg-[#1B1B1B] h-[300px] rounded-lg"></div>
+      <Card className="bg-[#1B1B1B] border-[#2D2D2D]">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-[#4FDEE5] text-xl">
+            Token Monitor
+          </CardTitle>
+          <span className="text-[#B4B4B4] text-sm">Loading...</span>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[800px] flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#4FDEE5]"></div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
