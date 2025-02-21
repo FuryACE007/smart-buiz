@@ -38,6 +38,14 @@ interface BarData {
   color?: string;
 }
 
+const isValidToken = (token: Token) => {
+  return (
+    token?.metadata?.tokenDescription?.tokenData &&
+    typeof token.metadata.tokenDescription.tokenData["Maximum Number of Wallets Allowed"] === "number" &&
+    typeof token.metadata.tokenDescription.tokenData["Number of Tokens per Wallet"] === "number"
+  );
+};
+
 export default function TokenMonitor() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
@@ -84,6 +92,8 @@ export default function TokenMonitor() {
   const chartData: BarData[] = sortedMintAddressesRef.current
     .filter((mintAddress) => {
       const token = tokens.find((t) => t.mintAddress === mintAddress);
+      // Skip invalid tokens and those starting with "AT"
+      if (!token || !isValidToken(token)) return false;
       const projectName =
         token?.metadata?.tokenDescription?.tokenData?.["Project Name"] ||
         "Unknown Project";
@@ -91,7 +101,9 @@ export default function TokenMonitor() {
     })
     .map((mintAddress, index) => {
       const token = tokens.find((t) => t.mintAddress === mintAddress);
-      if (!token)
+      // This check is not strictly necessary now due to the filter above,
+      // but we'll keep it for type safety
+      if (!token || !isValidToken(token))
         return {
           projectName: "Unknown",
           mintAddress,
@@ -101,13 +113,9 @@ export default function TokenMonitor() {
         };
 
       const maxWallets =
-        token.metadata.tokenDescription.tokenData[
-          "Maximum Number of Wallets Allowed"
-        ] || 0;
+        token.metadata.tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
       const tokensPerWallet =
-        token.metadata.tokenDescription.tokenData[
-          "Number of Tokens per Wallet"
-        ] || 0;
+        token.metadata.tokenDescription.tokenData["Number of Tokens per Wallet"];
       const projectName =
         token.metadata.tokenDescription.tokenData["Project Name"] ||
         "Unknown Project";
