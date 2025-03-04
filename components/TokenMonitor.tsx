@@ -14,7 +14,7 @@ import { Token } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 
 const REFRESH_INTERVAL = 15; // seconds
-const WALLET_ADDRESS = "DZ2DqjMAUxxn3jrC71cPbi67JUHC2BcqrT7FRJ2VNGRM";
+const WALLET_ADDRESS = "CoMZznVyUjY4sUxnBFEXC1L4vQAidfen2FrJLndr4jPA";
 
 // Color array for token bars
 const TOKEN_COLORS = [
@@ -41,8 +41,12 @@ interface BarData {
 const isValidToken = (token: Token) => {
   return (
     token?.metadata?.tokenDescription?.tokenData &&
-    typeof token.metadata.tokenDescription.tokenData["Maximum Number of Wallets Allowed"] === "number" &&
-    typeof token.metadata.tokenDescription.tokenData["Number of Tokens per Wallet"] === "number"
+    typeof token.metadata.tokenDescription.tokenData[
+      "Maximum Number of Wallets Allowed"
+    ] === "number" &&
+    typeof token.metadata.tokenDescription.tokenData[
+      "Number of Tokens per Wallet"
+    ] === "number"
   );
 };
 
@@ -113,9 +117,13 @@ export default function TokenMonitor() {
         };
 
       const maxWallets =
-        token.metadata.tokenDescription.tokenData["Maximum Number of Wallets Allowed"];
+        token.metadata.tokenDescription.tokenData[
+          "Maximum Number of Wallets Allowed"
+        ];
       const tokensPerWallet =
-        token.metadata.tokenDescription.tokenData["Number of Tokens per Wallet"];
+        token.metadata.tokenDescription.tokenData[
+          "Number of Tokens per Wallet"
+        ];
       const projectName =
         token.metadata.tokenDescription.tokenData["Project Name"] ||
         "Unknown Project";
