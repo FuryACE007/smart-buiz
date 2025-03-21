@@ -14,7 +14,7 @@ import { Token } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 
 const REFRESH_INTERVAL = 15; // seconds
-const WALLET_ADDRESS = "CoMZznVyUjY4sUxnBFEXC1L4vQAidfen2FrJLndr4jPA";
+const WALLET_ADDRESS = "7uww4wJLN2fg1J9idPZhKQLukwMeFj3dn6TdqpDg2KrJ";
 
 // Color array for token bars
 const TOKEN_COLORS = [
