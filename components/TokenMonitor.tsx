@@ -10,11 +10,11 @@ import {
   Legend,
   Cell,
 } from "recharts";
+import { TbReload } from "react-icons/tb";
 import { Token } from "@/types/token";
 import { getTokenData } from "@/lib/api";
 
-const REFRESH_INTERVAL = 15; // seconds
-const WALLET_ADDRESS = "H7vURQamyr9kBmYZnRYLQVSiLEfyLWZ4pZCLGDw5DcuS";
+const REFRESH_INTERVAL = 300; // seconds
 
 // Color array for token bars
 const TOKEN_COLORS = [
@@ -51,6 +51,9 @@ const isValidToken = (token: Token) => {
 };
 
 export default function TokenMonitor() {
+  const [walletAddress, setWalletAddress] = useState<string>(
+    "H7vURQamyr9kBmYZnRYLQVSiLEfyLWZ4pZCLGDw5DcuS"
+  );
   const [tokens, setTokens] = useState<Token[]>([]);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
   const [loading, setLoading] = useState(true);
@@ -58,8 +61,9 @@ export default function TokenMonitor() {
   const sortedMintAddressesRef = useRef<string[]>([]);
 
   const fetchTokenData = useCallback(async () => {
+    if (!walletAddress) return;
     try {
-      const data = await getTokenData(WALLET_ADDRESS);
+      const data = await getTokenData(walletAddress);
       setTokens(data);
 
       if (sortedMintAddressesRef.current.length === 0 && data.length > 0) {
@@ -73,11 +77,23 @@ export default function TokenMonitor() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [walletAddress]);
+
+  // Handler for loading a new wallet
+  const handleLoadWallet = () => {
+    const input = window.prompt("Enter wallet address:", walletAddress);
+    if (input && input !== walletAddress) {
+      setLoading(true);
+      setTokens([]);
+      sortedMintAddressesRef.current = [];
+      setWalletAddress(input.trim());
+      setCountdown(REFRESH_INTERVAL);
+    }
+  };
 
   useEffect(() => {
     fetchTokenData();
-  }, []);
+  }, [fetchTokenData]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -91,7 +107,7 @@ export default function TokenMonitor() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [fetchTokenData]);
 
   const chartData: BarData[] = sortedMintAddressesRef.current
     .filter((mintAddress) => {
@@ -159,9 +175,29 @@ export default function TokenMonitor() {
     <Card className="bg-[#1B1B1B] border-[#2D2D2D]">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-[#4FDEE5] text-xl">Token Monitor</CardTitle>
-        <span className="text-[#B4B4B4] text-sm">
-          Refresh in: <span className="text-[#4FDEE5]">{countdown}s</span>
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-[#B4B4B4] text-sm">
+            Refresh in: <span className="text-[#4FDEE5]">{countdown}s</span>
+          </span>
+          <button
+            className="px-3 py-1 rounded bg-[#232323] text-[#4FDEE5] border border-[#2D2D2D] hover:bg-[#2D2D2D] transition-all"
+            onClick={handleLoadWallet}
+            title="Load Wallet"
+          >
+            Load Wallet
+          </button>
+          <button
+            className="text-[#4FDEE5] hover:text-[#3ec1c8] transition-all"
+            onClick={() => {
+              setLoading(true); // Show loading spinner
+              setCountdown(REFRESH_INTERVAL);
+              fetchTokenData();
+            }}
+            title="Manual Refresh"
+          >
+            <TbReload />
+          </button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-[800px]">
