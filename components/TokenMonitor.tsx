@@ -52,7 +52,7 @@ const isValidToken = (token: Token) => {
 
 export default function TokenMonitor() {
   const [walletAddress, setWalletAddress] = useState<string>(
-    "H7vURQamyr9kBmYZnRYLQVSiLEfyLWZ4pZCLGDw5DcuS"
+    "GD64rTe4cMU46T4dRAooiDvwqp8Zx7eKFDVtMd9UgRQB",
   );
   const [tokens, setTokens] = useState<Token[]>([]);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
