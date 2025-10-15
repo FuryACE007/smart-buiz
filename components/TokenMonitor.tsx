@@ -35,6 +35,7 @@ interface BarData {
   mintAddress: string;
   balance: number;
   maxBalance: number;
+  inCirculation: number;
   color?: string;
 }
 
@@ -129,6 +130,7 @@ export default function TokenMonitor() {
           mintAddress,
           balance: 0,
           maxBalance: 0,
+          inCirculation: 0,
           color: TOKEN_COLORS[index % TOKEN_COLORS.length],
         };
 
@@ -144,11 +146,15 @@ export default function TokenMonitor() {
         token.metadata.tokenDescription.tokenData["Project Name"] ||
         "Unknown Project";
 
+      const maxBalance = maxWallets * tokensPerWallet;
+      const inCirculation = Math.max(maxBalance - token.balance, 0);
+
       return {
         projectName,
         mintAddress,
         balance: token.balance,
-        maxBalance: maxWallets * tokensPerWallet,
+        maxBalance,
+        inCirculation,
         color: TOKEN_COLORS[index % TOKEN_COLORS.length],
       };
     });
@@ -249,8 +255,8 @@ export default function TokenMonitor() {
                 />
                 <Legend verticalAlign="top" height={36} />
                 <Bar
-                  dataKey="balance"
-                  name="Current Balance"
+                  dataKey="inCirculation"
+                  name="Tokens in Circulation"
                   radius={[0, 4, 4, 0]}
                   barSize={10}
                   label={{
@@ -258,7 +264,7 @@ export default function TokenMonitor() {
                     fill: "#4FDEE5",
                     fontSize: 12,
                     formatter: (value: number) =>
-                      `Current: ${value.toLocaleString()}`,
+                      `In Circulation: ${value.toLocaleString()}`,
                     dx: 5,
                   }}
                 >
